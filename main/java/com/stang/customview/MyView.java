@@ -235,7 +235,7 @@ public class MyView extends View {
     }
 
     public void setDotFigure(int mDotFigure) {
-        this.mDotFigure = mDotFigure;
+        this.mDotFigure = mDotdfdfFigure;
     }
 
     public void setDotWidth(int mDotWidth) {
