@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+    <declare-styleable name="MyView">
+        <attr name="line_color" format="color"/>
+        <attr name="line_width" format="dimension"/>
+        <attr name="dot_color" format="color"/>
+        <attr name="dot_width" format="dimension"/>
+        <attr name="dot_figure" format="enum">
+            <enum name="none" value="0"/>
+            <enum name="rectangle" value="1"/>
+            <enum name="circle" value="2"/>
+            <enum name="image" value="3"/>
+        </attr>
+        <attr name="speed_animation" format="integer"/>
+        <attr name="repeat_counts" format="integer"/>
+        <attr name="direction" format="enum">
+            <enum name="forward" value="0"/>
+            <enum name="backward" value="1"/>
+            <enum name="round" value="2"/>
+        </attr>
+
+    </declare-styleable>
+</resources>
