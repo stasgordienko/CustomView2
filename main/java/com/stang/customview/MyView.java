@@ -55,10 +55,10 @@ public class MyView extends View {
     private long mRepeatedCycles = 0;
     private Drawable mCustomImage;
 
-    OnAnimationEventListener animationListener = null;
+    OnAnimationEventListener mAnimationListener = null;
 
     public void setOnAnimationEventListener(OnAnimationEventListener listener) {
-        animationListener = listener;
+        mAnimationListener = listener;
     }
 
     public interface OnAnimationEventListener {
@@ -68,27 +68,27 @@ public class MyView extends View {
         void onAnimationExploded();
     }
 
-    private void animationStarted() {
-        if (animationListener != null) {
-            animationListener.onAnimationStarted();
+    private void onAnimationStarted() {
+        if (mAnimationListener != null) {
+            mAnimationListener.onAnimationStarted();
         }
     }
 
-    private void animationStopped() {
-        if (animationListener != null) {
-            animationListener.onAnimationStopped();
+    private void onAnimationStopped() {
+        if (mAnimationListener != null) {
+            mAnimationListener.onAnimationStopped();
         }
     }
 
-    private void animationCollapsed() {
-        if (animationListener != null) {
-            animationListener.onAnimationCollapsed();
+    private void onAnimationCollapsed() {
+        if (mAnimationListener != null) {
+            mAnimationListener.onAnimationCollapsed();
         }
     }
 
-    private void animationExploded() {
-        if (animationListener != null) {
-            animationListener.onAnimationExploded();
+    private void onAnimationExploded() {
+        if (mAnimationListener != null) {
+            mAnimationListener.onAnimationExploded();
         }
     }
 
@@ -98,13 +98,13 @@ public class MyView extends View {
         removeCallbacks(animator);
         post(animator);
         isRunning = true;
-        animationStarted();
+        onAnimationStarted();
     }
 
     public void stopAnimation() {
         isRunning = false;
         removeCallbacks(animator);
-        animationStopped();
+        onAnimationStopped();
     }
 
 
@@ -307,7 +307,7 @@ public class MyView extends View {
         @Override
         public void run() {
             if (mTimeline > TIMELINE_MAX) {
-                animationCollapsed();
+                onAnimationCollapsed();
                 mReverseTimeline = -1;
                 if(mDirection == DIRECTION_ROUND && (mRepeat==0 || mRepeatedCycles < mRepeat)){
                     mRepeatedCycles++;
@@ -316,7 +316,7 @@ public class MyView extends View {
                 };
             } else
             if (mTimeline < TIMELINE_MIN) {
-                animationExploded();
+                onAnimationExploded();
                 mReverseTimeline = 1;
                 if(mDirection == DIRECTION_ROUND && (mRepeat==0 || mRepeatedCycles < mRepeat)){
                     mRepeatedCycles++;

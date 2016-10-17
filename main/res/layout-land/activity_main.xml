@@ -12,7 +12,7 @@
     android:orientation="horizontal"
     tools:context="com.stang.customview.MainActivity">
 
-    <com.stang.customview.MyView
+    <com.stang.customview.myView
             android:id="@+id/v1"
             android:layout_marginLeft="10dp"
             android:layout_width="110dp"
@@ -89,19 +89,19 @@
     </LinearLayout>
 
 
-    <com.stang.customview.MyView
+    <com.stang.customview.RectAnimationView
             android:id="@+id/v3"
             android:layout_marginLeft="20dp"
             android:layout_width="200dp"
             android:layout_height="200dp"
             android:layout_gravity="center"
             android:padding="10dp"
-            custom:line_color="@android:color/holo_orange_light"
-            custom:line_width="5px"
-            custom:speed_animation="180"
-            custom:dot_figure="image"
-            custom:dot_color="@android:color/holo_red_dark"
-            custom:dot_width="20px"
+            custom:rav_line_color="@android:color/holo_orange_light"
+            custom:rav_line_width="5px"
+            custom:rav_speed_animation="180"
+            custom:rav_dot_figure="image"
+            custom:rav_dot_color="@android:color/holo_red_dark"
+            custom:rav_dot_width="20px"
             />
     
 

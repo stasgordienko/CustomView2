@@ -10,9 +10,9 @@ public class MainActivity extends AppCompatActivity {
 
     MyView myView1;
     MyView myView2;
-    MyView myView3;
     MyView myView4;
     MyView myView5;
+    RectAnimationView myView3;
 
     TextView myTextView;
 
@@ -23,11 +23,11 @@ public class MainActivity extends AppCompatActivity {
 
         myTextView = (TextView) findViewById(R.id.tv);
 
-        myView1 = (MyView) findViewById(R.id.v1);
+        myView3 = (RectAnimationView) findViewById(R.id.v3);
         myView2 = (MyView) findViewById(R.id.v2);
-        myView3 = (MyView) findViewById(R.id.v3);
-        myView4 = (MyView) findViewById(R.id.v4);
         myView5 = (MyView) findViewById(R.id.v5);
+        myView4 = (MyView) findViewById(R.id.v4);
+        myView1 = (MyView) findViewById(R.id.v1);
 
         myView1.setSpeed(99);
         myView1.startAnimation();

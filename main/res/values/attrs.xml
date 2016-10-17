@@ -18,6 +18,24 @@
             <enum name="backward" value="1"/>
             <enum name="round" value="2"/>
         </attr>
-
+    </declare-styleable>
+    <declare-styleable name="RectAnimationView">
+        <attr name="rav_line_color" format="color"/>
+        <attr name="rav_line_width" format="dimension"/>
+        <attr name="rav_dot_color" format="color"/>
+        <attr name="rav_dot_width" format="dimension"/>
+        <attr name="rav_dot_figure" format="enum">
+            <enum name="none" value="0"/>
+            <enum name="rectangle" value="1"/>
+            <enum name="circle" value="2"/>
+            <enum name="image" value="3"/>
+        </attr>
+        <attr name="rav_speed_animation" format="integer"/>
+        <attr name="rav_repeat_counts" format="integer"/>
+        <attr name="rav_direction" format="enum">
+            <enum name="forward" value="0"/>
+            <enum name="backward" value="1"/>
+            <enum name="round" value="2"/>
+        </attr>
     </declare-styleable>
 </resources>

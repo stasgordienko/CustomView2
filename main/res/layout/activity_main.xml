@@ -87,22 +87,21 @@
 </LinearLayout>
 
 
-
-    <com.stang.customview.MyView
+    <com.stang.customview.RectAnimationView
             android:id="@+id/v3"
             android:layout_marginTop="20dp"
             android:layout_width="200dp"
             android:layout_height="200dp"
             android:layout_gravity="center"
             android:padding="10dp"
-            custom:line_color="@android:color/holo_orange_light"
-            custom:line_width="5px"
-            custom:speed_animation="180"
-            custom:dot_figure="image"
-            custom:dot_color="@android:color/holo_red_dark"
-            custom:dot_width="20px"
-            custom:repeat_counts="0"
-            custom:direction="round"
+            custom:rav_line_color="@android:color/holo_orange_light"
+            custom:rav_line_width="5px"
+            custom:rav_speed_animation="180"
+            custom:rav_dot_figure="image"
+            custom:rav_dot_color="@android:color/holo_red_dark"
+            custom:rav_dot_width="20px"
+            custom:rav_repeat_counts="0"
+            custom:rav_direction="round"
             />
     
 
