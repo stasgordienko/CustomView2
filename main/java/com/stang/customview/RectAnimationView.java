@@ -2,9 +2,7 @@ package com.stang.customview;
 
 import android.animation.Animator;
 import android.animation.AnimatorSet;
-import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
@@ -13,7 +11,6 @@ import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 
 import static android.animation.ObjectAnimator.ofInt;
@@ -34,7 +31,7 @@ public class RectAnimationView extends View {
     Paint mLinePaint;
     Paint mDotPaint;
     Paint mCenterPaint;
-    RectAnimationView.Dot[] mDots;
+    RectAnimationView.Path[] mPath;
 
     private int mHeight = 0;
     private int mWidth = 0;
@@ -52,14 +49,11 @@ public class RectAnimationView extends View {
     private int mRadius = 20;
     private int mCenterAlpha = 0;
     private boolean isRunning = false;
-    private boolean isForward = true;
+    //private boolean isForward = true;
 
     private Drawable mDotsImage;
     private Drawable mCenterImage;
 
-    ObjectAnimator[] mDotsAnimators;
-    ObjectAnimator mAlphaAnimator;
-    AnimatorSet[] mAngleAnimatorSet;
     AnimatorSet mAnimatorSet;
 
     MyView.OnAnimationEventListener mAnimationListener = null;
@@ -101,10 +95,10 @@ public class RectAnimationView extends View {
 
 
     public void startAnimation() {
-        init();
+        //init();
         mAnimatorSet.start();
         isRunning = true;
-        //invalidate();
+        invalidate();
         onAnimationStarted();
     }
 
@@ -171,7 +165,6 @@ public class RectAnimationView extends View {
     }
 
 
-
     public RectAnimationView(Context context) {
         super(context);
     }
@@ -198,32 +191,31 @@ public class RectAnimationView extends View {
 
         mRadius = mDotWidth;
 
-        mDotsAnimators = new ObjectAnimator[8];
-        mAlphaAnimator = new ObjectAnimator();
-        mAngleAnimatorSet = new AnimatorSet[4];
+
         mAnimatorSet = new AnimatorSet();
         mAnimatorSet.addListener(new Animator.AnimatorListener() {
             @Override
             public void onAnimationStart(Animator animation) {
                 onAnimationExploded();
+                //
             }
 
             @Override
             public void onAnimationEnd(Animator animation) {
                 onAnimationCollapsed();
-                revertDirection();
-                //mAnimatorSet.start();
-
+                isRunning = false;
+                //
             }
 
             @Override
             public void onAnimationCancel(Animator animation) {
-
+                //
+                isRunning = false;
             }
 
             @Override
             public void onAnimationRepeat(Animator animation) {
-
+                //
             }
         });
 
@@ -261,88 +253,35 @@ public class RectAnimationView extends View {
     private void init() {
         //Log.d(TAG, "onSizeChanged: " + mHeight + ":" + mWidth + "   center: " + mCenterX + ":" + mCenterY + "   mRadius: " + mRadius);
 
-        mDots = new Dot[4];
-        mDots[0] = new Dot(mRadius, mRadius, mCenterX, mCenterY);
-        mDots[3] = new Dot(mWidth - mRadius, mRadius, mCenterX, mCenterY);
-        mDots[2] = new Dot(mWidth - mRadius, mHeight - mRadius, mCenterX, mCenterY);
-        mDots[1] = new Dot(mRadius, mHeight - mRadius, mCenterX, mCenterY);
+        Dot center = new Dot(mCenterX, mCenterY);
+        Dot leftUp = new Dot(mRadius, mRadius);
+        Dot leftBottom = new Dot(mRadius, mHeight-mRadius);
+        Dot rightUp = new Dot(mWidth-mRadius, mRadius);
+        Dot rightBottom = new Dot(mWidth - mRadius, mHeight - mRadius);
+
+        Dot left = new Dot(mRadius, mCenterY);
+        Dot bottom = new Dot(mCenterX, mHeight - mRadius);
+        Dot right = new Dot(mWidth - mRadius, mCenterY);
+        Dot up = new Dot(mCenterX, mRadius);
+
+
+        mPath = new Path[4];
+        mPath[0] = new Path(leftUp, left, center);
+        mPath[1] = new Path(leftBottom, bottom, center);
+        mPath[2] = new Path(rightBottom, right, center);
+        mPath[3] = new Path(rightUp, up, center);
 
         mCenterImage.setBounds((int)(mHeight / 2 - mRadius *2), (int)(mWidth / 2 - mRadius *2),
                 (int)(mHeight / 2 + mRadius *2), (int)(mWidth / 2 + mRadius *2));
 
-        setForward();
+
+        FigureX figure = new FigureX(mPath);
+
+        mAnimatorSet.play(figure.getAnimatorSet()).before(figure.reverse().getAnimatorSet());
+
 
      }
 
-    private void setForward() {
-        int delay = 200;
-        int lineDuration = 500;
-        int duration = 5000;
-
-        mDotsAnimators[0] = ObjectAnimator.ofInt(mDots[0], "y", mDots[0].startY, mDots[0].endY);
-        mDotsAnimators[1] = ObjectAnimator.ofInt(mDots[0], "x", mDots[0].startX, mDots[0].endX);
-        mAngleAnimatorSet[0] = new AnimatorSet();
-        mAngleAnimatorSet[0].playSequentially(mDotsAnimators[0], mDotsAnimators[1]);
-        mAngleAnimatorSet[0].setStartDelay(delay * 0);
-
-        mDotsAnimators[2] = ObjectAnimator.ofInt(mDots[1], "y", mDots[1].startY, mDots[1].endY);
-        mDotsAnimators[3] = ObjectAnimator.ofInt(mDots[1], "x", mDots[1].startX, mDots[1].endX);
-        mAngleAnimatorSet[1] = new AnimatorSet();
-        mAngleAnimatorSet[1].playSequentially(mDotsAnimators[3], mDotsAnimators[2]);
-        mAngleAnimatorSet[1].setStartDelay(delay * 1);
-
-        mDotsAnimators[4] = ObjectAnimator.ofInt(mDots[2], "y", mDots[2].startY, mDots[2].endY);
-        mDotsAnimators[5] = ObjectAnimator.ofInt(mDots[2], "x", mDots[2].startX, mDots[2].endX);
-        mAngleAnimatorSet[2] = new AnimatorSet();
-        mAngleAnimatorSet[2].playSequentially(mDotsAnimators[4], mDotsAnimators[5]);
-        mAngleAnimatorSet[2].setStartDelay(delay * 2);
-
-        mDotsAnimators[6] = ObjectAnimator.ofInt(mDots[3], "y", mDots[3].startY, mDots[3].endY);
-        mDotsAnimators[7] = ObjectAnimator.ofInt(mDots[3], "x", mDots[3].startX, mDots[3].endX);
-        mAngleAnimatorSet[3] = new AnimatorSet();
-        mAngleAnimatorSet[3].playSequentially(mDotsAnimators[7], mDotsAnimators[6]);
-        mAngleAnimatorSet[3].setStartDelay(delay * 3);
-
-        for (int i = 0; i <8 ; i++) {
-            mDotsAnimators[i].setDuration(lineDuration);
-            mDotsAnimators[i].setRepeatMode(ObjectAnimator.REVERSE);
-        }
-
-        mAnimatorSet.playTogether(mAngleAnimatorSet);
-
-//        mAnimatorSet.setDuration(duration);
-
-//        mAlphaAnimator = ObjectAnimator.ofInt(this, "mCenterAlpha", 255, 0 );
-//        mAlphaAnimator.setDuration(200);
-//        mAlphaAnimator.setRepeatCount(5);
-//        mAlphaAnimator.setRepeatMode(ValueAnimator.REVERSE);
-//
-//        mAnimatorSet.play(mAlphaAnimator);
-    }
-
-    private void setBackward() {
-        for (int i = 0; i < 8; i++) {
-            mDotsAnimators[i].reverse();
-        }
-
-        mAngleAnimatorSet[0].playSequentially(mDotsAnimators[1], mDotsAnimators[0]);
-        mAngleAnimatorSet[1].playSequentially(mDotsAnimators[2], mDotsAnimators[3]);
-        mAngleAnimatorSet[2].playSequentially(mDotsAnimators[5], mDotsAnimators[4]);
-        mAngleAnimatorSet[3].playSequentially(mDotsAnimators[6], mDotsAnimators[7]);
-
-        mAnimatorSet.playTogether(mAngleAnimatorSet);
-    }
-
-
-    private void revertDirection() {
-        if(isForward) {
-            setBackward();
-            isForward = false;
-        } else {
-            setForward();
-            isForward = true;
-        }
-    }
 
     @Override
     protected void onDraw(Canvas canvas) {
@@ -360,25 +299,25 @@ public class RectAnimationView extends View {
             case FIGURE_RECTANGLE:
                 mCenterPaint.setAlpha(mCenterAlpha);
                 canvas.drawRect(mHeight /2- mRadius *2, mWidth /2- mRadius *2, mHeight /2+ mRadius *2, mWidth /2+ mRadius *2, mCenterPaint);
-                for (int i = 0; i < mDots.length; i++) {
-                    canvas.drawRect(mDots[i].getX()- mRadius, mDots[i].getY()- mRadius, mDots[i].getX()+ mRadius, mDots[i].getY()+ mRadius, mDotPaint);
+                for (int i = 0; i < mPath.length; i++) {
+                    canvas.drawRect(mPath[i].getX()- mRadius, mPath[i].getY()- mRadius, mPath[i].getX()+ mRadius, mPath[i].getY()+ mRadius, mDotPaint);
                 }
                 break;
 
             case FIGURE_CIRCLE:
                 mCenterPaint.setAlpha(mCenterAlpha);
                 canvas.drawCircle(mHeight /2, mWidth /2, mRadius *2, mCenterPaint);
-                for (int i = 0; i < mDots.length; i++) {
-                    canvas.drawCircle(mDots[i].getX(), mDots[i].getY(), mRadius, mDotPaint);
+                for (int i = 0; i < mPath.length; i++) {
+                    canvas.drawCircle(mPath[i].getX(), mPath[i].getY(), mRadius, mDotPaint);
                 }
                 break;
 
             case FIGURE_IMAGE:
                 mCenterImage.setAlpha(mCenterAlpha);
                 mCenterImage.draw(canvas);
-                for (int i = 0; i < mDots.length; i++) {
-                    mDotsImage.setBounds(mDots[i].getX()- mRadius, mDots[i].getY()- mRadius,
-                            mDots[i].getX()+ mRadius, mDots[i].getY()+ mRadius);
+                for (int i = 0; i < mPath.length; i++) {
+                    mDotsImage.setBounds(mPath[i].getX()- mRadius, mPath[i].getY()- mRadius,
+                            mPath[i].getX()+ mRadius, mPath[i].getY()+ mRadius);
                     mDotsImage.draw(canvas);
                 }
                 break;
@@ -386,54 +325,151 @@ public class RectAnimationView extends View {
     }
 
     private void drawLines(Canvas canvas) {
-        canvas.drawLine(mDots[0].getX(), mDots[0].getY(), mDots[1].getX(), mDots[1].getY(), mLinePaint);
-        canvas.drawLine(mDots[0].getX(), mDots[0].getY(), mDots[2].getX(), mDots[2].getY(), mLinePaint);
-        canvas.drawLine(mDots[0].getX(), mDots[0].getY(), mDots[3].getX(), mDots[3].getY(), mLinePaint);
+        canvas.drawLine(mPath[0].getX(), mPath[0].getY(), mPath[1].getX(), mPath[1].getY(), mLinePaint);
+        canvas.drawLine(mPath[0].getX(), mPath[0].getY(), mPath[2].getX(), mPath[2].getY(), mLinePaint);
+        canvas.drawLine(mPath[0].getX(), mPath[0].getY(), mPath[3].getX(), mPath[3].getY(), mLinePaint);
 
-        canvas.drawLine(mDots[1].getX(), mDots[1].getY(), mDots[2].getX(), mDots[2].getY(), mLinePaint);
-        canvas.drawLine(mDots[1].getX(), mDots[1].getY(), mDots[3].getX(), mDots[3].getY(), mLinePaint);
+        canvas.drawLine(mPath[1].getX(), mPath[1].getY(), mPath[2].getX(), mPath[2].getY(), mLinePaint);
+        canvas.drawLine(mPath[1].getX(), mPath[1].getY(), mPath[3].getX(), mPath[3].getY(), mLinePaint);
 
-        canvas.drawLine(mDots[2].getX(), mDots[2].getY(), mDots[3].getX(), mDots[3].getY(), mLinePaint);
+        canvas.drawLine(mPath[2].getX(), mPath[2].getY(), mPath[3].getX(), mPath[3].getY(), mLinePaint);
     }
 
 
     public class Dot {
-        private int currentX;
-        private int currentY;
+        public int x;
+        public int y;
 
-        private int startX;
-        private int endX;
-        private int startY;
-        private int endY;
-
-
-        public Dot(int sx, int sy, int ex, int ey) {
-            this.startX = sx;
-            this.startY = sy;
-            this.endX = ex;
-            this.endY = ey;
-
-            this.currentX = sx;
-            this.currentY = sy;
+        public Dot(int x, int y) {
+            this.x = x;
+            this.y = y;
         }
-
 
         public int getX() {
-            return currentX;
+            return x;
         }
-
         public int getY() {
-            return currentY;
+            return y;
+        }
+        public void setX(int x) { this.x = x;}
+        public void setY(int y) { this.y = y;}
+     }
+
+
+    public class Path {
+        public static final int DIRECTION_FORWARD = 1;
+        public static final int DIRECTION_BACKWARD = -1;
+
+        private int mCurrentX;
+        private int mCurrentY;
+
+        private int[] mX;
+        private int[] mY;
+        private int mDirection = DIRECTION_FORWARD;
+
+        private ValueAnimator mAnimatorX;
+        private ValueAnimator mAnimatorY;
+
+        public int getX(){
+            return (int) mAnimatorX.getAnimatedValue();
+        }
+        public int getY(){
+            return (int) mAnimatorY.getAnimatedValue();
         }
 
-        public void setX(int x) { this.currentX = x;}
+        public Path(Dot ... dots) {
+            if(dots != null) {
+                mX = new int[dots.length];
+                mY = new int[dots.length];
+                for (int i = 0; i < dots.length; i++) {
+                    mX[i] = dots[i].getX();
+                    mY[i] = dots[i].getY();
+                }
+                init();
+            }
 
-        public void setY(int y) { this.currentY = y;}
+        }
 
+        public Path(int[] x, int[] y) {
+            if((x != null && y != null) && (x.length == y.length))  {
+                this.mX = x;
+                this.mY = y;
+                init();
+            }
 
-        @Override
-        public String toString() {
-            return "start: " + startX + "," + startY + "; end: " + endX + "," + endY + "; current: " + currentX + "," + currentY;
+        }
+
+        public Path(int[] coord) {
+            if(coord != null && (coord.length%2 == 0)){
+                for (int i = 0; i < coord.length/2; i+=2) {
+                    mX[i] = coord[i];
+                    mY[i] = coord[i+1];
+                }
+                init();
+            }
+        }
+
+        private void init(){
+            mCurrentX = mX[0];
+            mCurrentY = mY[0];
+        }
+
+        public Path reverse(){
+            mDirection *= -1;
+            return this;
+        }
+
+        public Path setDirection(int direction) {
+            if(direction < 0) {
+                if(mDirection == DIRECTION_FORWARD){
+                    reverse();
+                }
+            } else {
+                if(mDirection == DIRECTION_BACKWARD){
+                    reverse();
+                }
+            }
+            return this;
+        }
+
+        public AnimatorSet getAnimatorSet(){
+            mAnimatorX = ValueAnimator.ofInt(mX).setDuration(1000);
+            mAnimatorY = ValueAnimator.ofInt(mY).setDuration(1000);
+            AnimatorSet result = new AnimatorSet();
+            result.playTogether(mAnimatorX, mAnimatorY);
+            return result;
+        }
+    }
+
+    public class FigureX {
+        private Path[] mPath;
+
+        public FigureX(Path ... path) {
+            if(path != null) {
+                mPath = path;
+            }
+        }
+
+        public FigureX reverse(){
+            for (int i = 0; i < mPath.length ; i++) {
+                mPath[i].reverse();
+            }
+            return this;
+        }
+
+        public AnimatorSet getAnimatorSet() {
+            int delay = 200;
+
+            AnimatorSet[] animator = new AnimatorSet[mPath.length];
+
+            for (int i = 0; i < mPath.length ; i++) {
+                animator[i] = mPath[i].getAnimatorSet();
+                animator[i].setStartDelay(delay * i);
+            }
+
+            AnimatorSet result = new AnimatorSet();
+            result.playTogether(animator);
+            return result;
         }
     }
 }
