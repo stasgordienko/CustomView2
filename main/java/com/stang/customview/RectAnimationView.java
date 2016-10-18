@@ -2,6 +2,7 @@ package com.stang.customview;
 
 import android.animation.Animator;
 import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -11,7 +12,11 @@ import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
+
+import java.lang.reflect.Array;
+import java.util.Arrays;
 
 import static android.animation.ObjectAnimator.ofInt;
 import static java.lang.Math.abs;
@@ -54,6 +59,7 @@ public class RectAnimationView extends View {
     private Drawable mDotsImage;
     private Drawable mCenterImage;
 
+    FigureX mFigureX;
     AnimatorSet mAnimatorSet;
 
     MyView.OnAnimationEventListener mAnimationListener = null;
@@ -96,6 +102,7 @@ public class RectAnimationView extends View {
 
     public void startAnimation() {
         //init();
+        mFigureX.init(Path.DIRECTION_FORWARD);
         mAnimatorSet.start();
         isRunning = true;
         invalidate();
@@ -251,7 +258,7 @@ public class RectAnimationView extends View {
 
 
     private void init() {
-        //Log.d(TAG, "onSizeChanged: " + mHeight + ":" + mWidth + "   center: " + mCenterX + ":" + mCenterY + "   mRadius: " + mRadius);
+        Log.d(TAG, "onSizeChanged: " + mHeight + ":" + mWidth + "   center: " + mCenterX + ":" + mCenterY + "   mRadius: " + mRadius);
 
         Dot center = new Dot(mCenterX, mCenterY);
         Dot leftUp = new Dot(mRadius, mRadius);
@@ -275,10 +282,9 @@ public class RectAnimationView extends View {
                 (int)(mHeight / 2 + mRadius *2), (int)(mWidth / 2 + mRadius *2));
 
 
-        FigureX figure = new FigureX(mPath);
+        mFigureX = new FigureX(mPath);
 
-        mAnimatorSet.play(figure.getAnimatorSet()).before(figure.reverse().getAnimatorSet());
-
+        mAnimatorSet.play(mFigureX.getAnimatorSet());//.before(mFigureX.reverse().getAnimatorSet());
 
      }
 
@@ -365,16 +371,31 @@ public class RectAnimationView extends View {
 
         private int[] mX;
         private int[] mY;
+        private int[] mRX;
+        private int[] mRY;
+        private int[] X;
+        private int[] Y;
+
         private int mDirection = DIRECTION_FORWARD;
 
-        private ValueAnimator mAnimatorX;
-        private ValueAnimator mAnimatorY;
+        //private ValueAnimator mAnimatorX;
+        //private ValueAnimator mAnimatorY;
 
         public int getX(){
-            return (int) mAnimatorX.getAnimatedValue();
+            //return (int) mAnimatorX.getAnimatedValue();
+            return mCurrentX;
         }
         public int getY(){
-            return (int) mAnimatorY.getAnimatedValue();
+            //return (int) mAnimatorY.getAnimatedValue();
+            return mCurrentY;
+        }
+
+        public void setX(int x) {
+            mCurrentX = x;
+        }
+
+        public void setY(int y) {
+            mCurrentY = y;
         }
 
         public Path(Dot ... dots) {
@@ -392,8 +413,8 @@ public class RectAnimationView extends View {
 
         public Path(int[] x, int[] y) {
             if((x != null && y != null) && (x.length == y.length))  {
-                this.mX = x;
-                this.mY = y;
+                mX = x;
+                mY = y;
                 init();
             }
 
@@ -409,13 +430,45 @@ public class RectAnimationView extends View {
             }
         }
 
+        void getReversed(){
+            for (int i = 0; i < mX.length; i++) {
+                mRX[i] = mX[mX.length-i-1];
+                mRY[i] = mY[mX.length-i-1];
+            }
+        }
+
         private void init(){
-            mCurrentX = mX[0];
-            mCurrentY = mY[0];
+            mRY = new int[mX.length];
+            mRX = new int[mX.length];
+
+            getReversed();
+
+            if(mDirection == DIRECTION_FORWARD){
+                X = mX.clone();
+                Y = mY.clone();
+            } else {
+                X = mRX.clone();
+                Y = mRY.clone();
+            }
+
+            setX(X[0]);
+            setY(Y[0]);
+
+            Log.d(TAG, "x:" + mCurrentX + " y:" + mCurrentY);
         }
 
         public Path reverse(){
             mDirection *= -1;
+//            for(int i = 0; i < mX.length / 2; i++)
+//            {
+//                int x = mX[i];
+//                int y = mY[i];
+//                mX[i] = mX[mX.length - i - 1];
+//                mY[i] = mY[mY.length - i - 1];
+//                mX[mX.length - i - 1] = x;
+//                mY[mY.length - i - 1] = y;
+//            }
+            init();
             return this;
         }
 
@@ -433,10 +486,12 @@ public class RectAnimationView extends View {
         }
 
         public AnimatorSet getAnimatorSet(){
-            mAnimatorX = ValueAnimator.ofInt(mX).setDuration(1000);
-            mAnimatorY = ValueAnimator.ofInt(mY).setDuration(1000);
+            int duration = 1000;
+            //mAnimatorX = ValueAnimator.ofInt(mX).setDuration(1000).;
+            //mAnimatorY = ValueAnimator.ofInt(mY).setDuration(1000);
             AnimatorSet result = new AnimatorSet();
-            result.playTogether(mAnimatorX, mAnimatorY);
+            result.playTogether(ObjectAnimator.ofInt(this,"x",X).setDuration(duration),
+                    ObjectAnimator.ofInt(this,"y", Y).setDuration(duration));
             return result;
         }
     }
@@ -450,9 +505,23 @@ public class RectAnimationView extends View {
             }
         }
 
+        public FigureX init(int direction){
+            for (int i = 0; i < mPath.length ; i++) {
+                mPath[i].setDirection(direction);
+            }
+
+            return this;
+        }
+
         public FigureX reverse(){
             for (int i = 0; i < mPath.length ; i++) {
                 mPath[i].reverse();
+            }
+            for(int i = 0; i < mPath.length / 2; i++)
+            {
+                Path temp = mPath[i];
+                mPath[i] = mPath[mPath.length - i - 1];
+                mPath[mPath.length - i - 1] = temp;
             }
             return this;
         }
